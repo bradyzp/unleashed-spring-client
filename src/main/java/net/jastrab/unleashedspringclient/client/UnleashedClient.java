@@ -5,6 +5,7 @@ import net.jastrab.unleashed.api.SimpleGetRequest;
 import net.jastrab.unleashed.api.http.CreatableResource;
 import net.jastrab.unleashed.api.http.PaginatedUnleashedRequest;
 import net.jastrab.unleashed.api.http.UnleashedRequest;
+import net.jastrab.unleashed.api.http.UnleashedResponse;
 import net.jastrab.unleashed.api.models.*;
 import net.jastrab.unleashed.api.security.ApiCredential;
 import org.slf4j.Logger;
