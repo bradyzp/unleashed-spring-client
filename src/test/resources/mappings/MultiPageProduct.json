@@ -1,0 +1,89 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/Products/?productGroup=Tools"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "Pagination": {
+            "NumberOfItems": 3,
+            "PageSize": 1,
+            "PageNumber": 1,
+            "NumberOfPages": 3
+          },
+          "Items": [
+            {
+              "Guid": "6c3a3990-5340-44f0-b67f-519c3b2bb335",
+              "ProductCode": "tool-1",
+              "ProductDescription": "First Tool",
+              "AverageLandPrice": 33.95
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/Products/Page/2?productGroup=Tools"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "Pagination": {
+            "NumberOfItems": 3,
+            "PageSize": 1,
+            "PageNumber": 2,
+            "NumberOfPages": 3
+          },
+          "Items": [
+            {
+              "Guid": "6c3a3990-5340-44f0-b67f-518c3f2bb335",
+              "ProductCode": "tool-2",
+              "ProductDescription": "Second Tool",
+              "AverageLandPrice": 37.95
+            }
+          ]
+        }
+      }
+    },
+
+    {
+      "request": {
+        "method": "GET",
+        "url": "/Products/Page/3?productGroup=Tools"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "Pagination": {
+            "NumberOfItems": 3,
+            "PageSize": 1,
+            "PageNumber": 3,
+            "NumberOfPages": 3
+          },
+          "Items": [
+            {
+              "Guid": "6c3a3990-5340-fff0-b67f-519c3b2bb335",
+              "ProductCode": "tool-3",
+              "ProductDescription": "Third Tool",
+              "AverageLandPrice": 40.95
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

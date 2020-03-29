@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class UnleashedClientProperties {
     private String apiId;
     private String apiKey;
+    private String baseUri = "https://api.unleashedsoftware.com";
 
     public String getApiId() {
         return apiId;
@@ -21,5 +22,13 @@ public class UnleashedClientProperties {
 
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
+    }
+
+    public String getBaseUri() {
+        return baseUri;
+    }
+
+    public void setBaseUri(String baseUri) {
+        this.baseUri = baseUri;
     }
 }

@@ -1,0 +1,116 @@
+{
+  "Pagination": {
+    "NumberOfItems": 1,
+    "PageSize": 200,
+    "PageNumber": 1,
+    "NumberOfPages": 1
+  },
+  "Items": [
+    {
+      "ProductCode": "07-012",
+      "ProductDescription": "Pump Air Shock",
+      "Barcode": "07-012",
+      "PackSize": null,
+      "Width": 1.5,
+      "Height": 0.3,
+      "Depth": 0.3,
+      "Weight": 0.8,
+      "MinStockAlertLevel": 0,
+      "MaxStockAlertLevel": 0,
+      "ReOrderPoint": null,
+      "UnitOfMeasure": {
+        "Guid": "0e70b9af-dd5a-48e4-a700-639422df10db",
+        "Name": "EA"
+      },
+      "NeverDiminishing": false,
+      "LastCost": 0,
+      "DefaultPurchasePrice": 33.95,
+      "DefaultSellPrice": 0,
+      "CustomerSellPrice": null,
+      "AverageLandPrice": 33.95,
+      "Obsolete": false,
+      "Notes": "Pump for air shocks",
+      "Images": null,
+      "ImageUrl": null,
+      "SellPriceTier1": {
+        "Name": "Sell Price Tier 1",
+        "Value": null
+      },
+      "SellPriceTier2": {
+        "Name": "Sell Price Tier 2",
+        "Value": null
+      },
+      "SellPriceTier3": {
+        "Name": "Sell Price Tier 3",
+        "Value": null
+      },
+      "SellPriceTier4": {
+        "Name": "Sell Price Tier 4",
+        "Value": null
+      },
+      "SellPriceTier5": {
+        "Name": "Sell Price Tier 5",
+        "Value": null
+      },
+      "SellPriceTier6": {
+        "Name": "Sell Price Tier 6",
+        "Value": null
+      },
+      "SellPriceTier7": {
+        "Name": "Sell Price Tier 7",
+        "Value": null
+      },
+      "SellPriceTier8": {
+        "Name": "Sell Price Tier 8",
+        "Value": null
+      },
+      "SellPriceTier9": {
+        "Name": "Sell Price Tier 9",
+        "Value": null
+      },
+      "SellPriceTier10": {
+        "Name": "Sell Price Tier 10",
+        "Value": null
+      },
+      "XeroTaxCode": null,
+      "XeroTaxRate": null,
+      "TaxablePurchase": true,
+      "TaxableSales": true,
+      "XeroSalesTaxCode": null,
+      "XeroSalesTaxRate": null,
+      "IsComponent": true,
+      "IsAssembledProduct": false,
+      "ProductGroup": {
+        "GroupName": "Common Components",
+        "Guid": "7066a88c-4ee7-442e-a85e-05d93d320b9c",
+        "LastModifiedOn": "/Date(1568228406135)/"
+      },
+      "XeroSalesAccount": null,
+      "XeroCostOfGoodsAccount": null,
+      "PurchaseAccount": null,
+      "BinLocation": null,
+      "Supplier": {
+        "SupplierProductCode": "07-012",
+        "SupplierProductDescription": null,
+        "SupplierProductPrice": 33.95,
+        "Guid": "0a6790de-b631-4978-b3fa-51eecf6b513c",
+        "SupplierCode": "BWERX",
+        "SupplierName": "Bagger Werx"
+      },
+      "AttributeSet": null,
+      "SourceId": null,
+      "SourceVariantParentId": null,
+      "IsSerialized": false,
+      "IsBatchTracked": false,
+      "IsSellable": false,
+      "MinimumSellPrice": null,
+      "MinimumSaleQuantity": null,
+      "MinimumOrderQuantity": null,
+      "CreatedBy": "test@example.com",
+      "CreatedOn": "/Date(1556311864987)/",
+      "LastModifiedBy": "test@example.com",
+      "Guid": "6c3a3990-5340-44f0-b67f-519c3b2bb335",
+      "LastModifiedOn": "/Date(1561755379892)/"
+    }
+  ]
+}

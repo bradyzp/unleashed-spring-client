@@ -29,14 +29,14 @@ class UnleashedClientIntegrationTest {
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
     class ProductIT {
 
-
         @Test
         @Order(1)
         @DisplayName("it successfully creates a new product")
         void createNewProduct() {
             final String productCode = UUID.randomUUID().toString();
             final String productDescription = "JUNIT GENERATED PRODUCT";
-            final Product product = new Product(productCode, productDescription);
+            final Product product = new Product(productCode);
+            product.setProductDescription(productDescription);
             product.setBarcode(productCode);
             product.setWeight(10.5);
             product.setDepth(2.0);

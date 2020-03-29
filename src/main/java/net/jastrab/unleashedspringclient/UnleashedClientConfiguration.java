@@ -14,7 +14,9 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.support.NoOpCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.Objects;
 
@@ -30,13 +32,21 @@ public class UnleashedClientConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(AsyncTaskExecutor.class)
+    public AsyncTaskExecutor threadPoolTaskExecutor() {
+        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor.setCorePoolSize(4);
+        threadPoolTaskExecutor.initialize();
+        return threadPoolTaskExecutor;
+    }
+
+    @Bean
     @ConditionalOnProperty(prefix = "unleashed.client", name = "caching.enabled", havingValue = "false")
     public CacheManager noopCacheManager() {
         LOGGER.info("Unleashed caching disabled");
         return new NoOpCacheManager();
     }
 
-    @Bean(name = "UnleashedObjectMapper")
     public MappingJackson2HttpMessageConverter unleashedConverter() {
         return new MappingJackson2HttpMessageConverter(new UnleashedObjectMapper());
     }
@@ -44,14 +54,15 @@ public class UnleashedClientConfiguration {
     @Bean
     @ConditionalOnMissingBean(UnleashedClient.class)
     public UnleashedClient createUnleashedClient(RestTemplateBuilder restTemplateBuilder,
-                                                 UnleashedClientProperties properties) {
+                                                 UnleashedClientProperties properties,
+                                                 AsyncTaskExecutor taskExecutor) {
         Objects.requireNonNull(properties.getApiId(),
                 "Unleashed API ID (unleashed.client.api-id) value must not be null");
         Objects.requireNonNull(properties.getApiKey(),
                 "Unleashed API Key (unleashed.client.api-key) value must not be null");
         final ApiCredential credential = new ApiCredentialImpl(properties.getApiId(), properties.getApiKey());
 
-        return new UnleashedClient(credential, restTemplateBuilder, unleashedConverter());
+        return new UnleashedClient(properties.getBaseUri(), credential, restTemplateBuilder, unleashedConverter(), taskExecutor);
     }
 
 }
