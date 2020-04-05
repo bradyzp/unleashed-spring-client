@@ -2,16 +2,16 @@ package net.jastrab.unleashedspringclient.client;
 
 import net.jastrab.unleashed.api.CreateItemRequest;
 import net.jastrab.unleashed.api.SimpleGetRequest;
-import net.jastrab.unleashed.api.http.*;
+import net.jastrab.unleashed.api.http.CreatableResource;
+import net.jastrab.unleashed.api.http.PaginatedUnleashedRequest;
+import net.jastrab.unleashed.api.http.PaginatedUnleashedResponse;
+import net.jastrab.unleashed.api.http.UnleashedRequest;
 import net.jastrab.unleashed.api.models.*;
-import net.jastrab.unleashed.api.security.ApiCredential;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.*;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
@@ -23,19 +23,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 public class UnleashedClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(UnleashedClient.class);
     private final RestTemplate restTemplate;
-    private final ApiCredential credential;
-    private final AsyncTaskExecutor taskExecutor;
 
     public UnleashedClient(final String baseUri,
-                           final ApiCredential credential,
                            final RestTemplateBuilder builder,
-                           final MappingJackson2HttpMessageConverter converter,
-                           final AsyncTaskExecutor taskExecutor) {
+                           final MappingJackson2HttpMessageConverter converter) {
         this.restTemplate = builder
                 .rootUri(baseUri)
                 .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -43,50 +38,37 @@ public class UnleashedClient {
                 .messageConverters(converter)
                 .build();
 
-        this.credential = credential;
-        this.taskExecutor = taskExecutor;
-        LOGGER.debug("UnleashedClient successfully initialized with API credentials");
+        LOGGER.debug("UnleashedClient successfully initialized");
     }
 
-    public <T> List<T> getItems(PaginatedUnleashedRequest<T> request) {
-        return getItems(request, false);
+    public <T> PaginatedUnleashedResponse<T> getItemsPaginated(PaginatedUnleashedRequest<T> request) {
+        Objects.requireNonNull(request, "Request cannot be null");
+
+        final Optional<PaginatedUnleashedResponse<T>> response = this.exchange(request);
+
+
+        return response.orElseThrow();
     }
 
     /**
-     * Request a list of items from Unleashed API. The response may be paginated.
+     * Request a list of items from Unleashed API. The response contains only the first page of items from a paginated
+     * response.
+     * <p>
+     * If making a request for a large number of items (> 200) which may be paginated by unleashed,
+     * use {@link #getItemsPaginated(PaginatedUnleashedRequest)}
      *
-     * @param request  The PaginatedUnleashedRequest for the item
-     * @param fetchAll Whether to recursively fetch all pages available
-     * @param <T>      type of the item that will be returned from the request
+     * @param request The PaginatedUnleashedRequest for the item
+     * @param <T>     type of the item that will be returned from the request
      * @return List<T> containing the items retrieved from the API, potentially empty
      */
-    public <T> List<T> getItems(PaginatedUnleashedRequest<T> request, boolean fetchAll) {
+    public <T> List<T> getItems(PaginatedUnleashedRequest<T> request) {
         Objects.requireNonNull(request, "Request cannot be null");
         LOGGER.debug("Performing getItems request, path: {}, query: {}, type <{}>",
                 request.getPath(), request.getQuery(), request.getResponseType());
 
-        final Optional<UnleashedResponse<T>> response = this.exchange(request);
-        final List<T> items = response.map(UnleashedResponse::getItems).orElse(new ArrayList<>());
+        final Optional<PaginatedUnleashedResponse<T>> response = this.exchange(request);
 
-        if (fetchAll) {
-            // Retrieve further pages
-            response.flatMap(UnleashedResponse::getPagination).ifPresent(pagination -> {
-                LOGGER.debug("Response pagination: {}", pagination);
-                final int pageNumber = pagination.getPageNumber();
-                if (pageNumber != pagination.getNumberOfPages()) {
-                    PaginatedUnleashedRequest<T> pageRequest = request.forPage(pageNumber + 1);
-                    List<T> nextPage = getItems(pageRequest, true);
-                    items.addAll(nextPage);
-                }
-            });
-        }
-//        response.flatMap(UnleashedResponse::getPagination)
-//                .filter(p -> p.getNumberOfPages() > 1)
-//                .map(Pagination::getNumberOfPages)
-//                .map(pages -> IntStream.range(2, pages).mapToObj(request::forPage))
-//                .map(this::getItems).
-
-        return items;
+        return response.map(PaginatedUnleashedResponse::getItems).orElse(new ArrayList<>());
     }
 
     /**
@@ -135,11 +117,6 @@ public class UnleashedClient {
     }
 
     private <T, R> Optional<R> exchange(UnleashedRequest<T> request) {
-        if (!request.isSigned()) {
-            LOGGER.debug("Signing request with API Credentials");
-            request.sign(this.credential);
-        }
-
         final HttpMethod method = HttpMethod.valueOf(request.getHttpMethod().name());
         LOGGER.debug("Request method: {}", method);
         final HttpHeaders headers = new HttpHeaders(new LinkedMultiValueMap<>(request.getHeaders()));

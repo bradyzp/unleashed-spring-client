@@ -18,7 +18,6 @@ import org.springframework.test.context.ContextConfiguration;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
@@ -84,6 +83,7 @@ public class WireMockProductsIntegrationTest {
         assertEquals(BigDecimal.valueOf(33.95), product.getAverageLandPrice());
     }
 
+    @Disabled("Auto-pagination disabled")
     @Test
     @DisplayName("Test get product request for a paginated response")
     void testGetProductRequestPaging() {
@@ -93,7 +93,7 @@ public class WireMockProductsIntegrationTest {
                 .productGroup("Tools")
                 .build();
 
-        final List<Product> products = client.getItems(request, true);
+        final List<Product> products = client.getItems(request);
 
         assertEquals(3, products.size());
         assertEquals("Third Tool", products.get(2).getProductDescription());
@@ -101,13 +101,4 @@ public class WireMockProductsIntegrationTest {
         server.verify(2, getRequestedFor(urlPathMatching("/Products/Page/[2-3]")));
     }
 
-    @Test
-    @DisplayName("GET Products Async with CompletableFuture")
-    void testGetProductsAsync() throws ExecutionException, InterruptedException {
-        final GetProductRequest request = GetProductRequest.builder()
-                .productGroup("Tools")
-                .build();
-
-        client.getItemsAsync(request).thenAccept(value -> value.forEach(System.out::println)).get();
-    }
 }
