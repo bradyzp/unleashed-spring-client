@@ -10,13 +10,13 @@
     </parent>
     <groupId>net.jastrab</groupId>
     <artifactId>unleashed-spring-client</artifactId>
-    <version>0.5.1-SNAPSHOT</version>
+    <version>0.5.8-SNAPSHOT</version>
     <name>unleashed-spring-client</name>
     <description>Spring REST based client for Unleashed API</description>
 
     <properties>
         <java.version>11</java.version>
-        <unleashed-common.version>0.5.3-SNAPSHOT</unleashed-common.version>
+        <unleashed-common.version>0.5.7-SNAPSHOT</unleashed-common.version>
         <slf4j.version>1.7.30</slf4j.version>
         <surefire.version>2.22.2</surefire.version>
         <failsafe.version>3.0.0-M4</failsafe.version>

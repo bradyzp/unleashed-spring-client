@@ -37,7 +37,7 @@ public class UnleashedClientConfiguration {
         return new NoOpCacheManager();
     }
 
-    public MappingJackson2HttpMessageConverter unleashedConverter() {
+    public MappingJackson2HttpMessageConverter unleashedMessageConverter() {
         return new MappingJackson2HttpMessageConverter(new UnleashedObjectMapper());
     }
 
@@ -53,7 +53,7 @@ public class UnleashedClientConfiguration {
         final RestTemplateBuilder builder = restTemplateBuilder
                 .additionalInterceptors(new UnleashedAuthInterceptor(credential));
 
-        return new UnleashedClient(properties.getBaseUri(), builder, unleashedConverter());
+        return new UnleashedClient(properties.getBaseUri(), builder, unleashedMessageConverter());
     }
 
 }

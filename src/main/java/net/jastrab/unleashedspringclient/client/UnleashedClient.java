@@ -1,24 +1,28 @@
 package net.jastrab.unleashedspringclient.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jastrab.unleashed.api.CreateItemRequest;
+import net.jastrab.unleashed.api.GetProductRequest;
 import net.jastrab.unleashed.api.SimpleGetRequest;
-import net.jastrab.unleashed.api.http.CreatableResource;
-import net.jastrab.unleashed.api.http.PaginatedUnleashedRequest;
-import net.jastrab.unleashed.api.http.PaginatedUnleashedResponse;
-import net.jastrab.unleashed.api.http.UnleashedRequest;
+import net.jastrab.unleashed.api.http.*;
 import net.jastrab.unleashed.api.models.*;
+import net.jastrab.unleashedspringclient.utils.ReflectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.*;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -26,18 +30,21 @@ import java.util.Optional;
 
 public class UnleashedClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(UnleashedClient.class);
+    private final String baseUri;
     private final RestTemplate restTemplate;
+    private final ObjectMapper mapper;
 
     public UnleashedClient(final String baseUri,
                            final RestTemplateBuilder builder,
                            final MappingJackson2HttpMessageConverter converter) {
+        this.baseUri = baseUri;
         this.restTemplate = builder
-                .rootUri(baseUri)
                 .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
                 .messageConverters(converter)
                 .build();
 
+        this.mapper = converter.getObjectMapper();
         LOGGER.debug("UnleashedClient successfully initialized");
     }
 
@@ -91,6 +98,29 @@ public class UnleashedClient {
         return this.exchange(request);
     }
 
+    /**
+     * Create or Update a Product
+     *
+     * @return the newly created or updated Product from the origin (with real GUID from unleashed)
+     * @since 0.5.8
+     */
+    public Optional<Product> upsertProduct(Product product, boolean update) {
+        LOGGER.debug("Upserting product with code: {}", product.getProductCode());
+        final PaginatedUnleashedRequest<Product> request = GetProductRequest.builder()
+                .productCode(product.getProductCode())
+                .build();
+
+        return getItem(request).map(original -> {
+            LOGGER.info("Retrieved existing product {}", original);
+            if (update) {
+                LOGGER.info("Updating existing product with properties from {}", product);
+                ReflectUtils.updateEntity(original, product);
+                LOGGER.info("Updated product: {}", original);
+            }
+            return createItem(original, Product.class);
+        }).orElseGet(() -> createItem(product, Product.class));
+    }
+
     @Cacheable("attribute_sets")
     public List<AttributeSet> getAttributeSets() {
         return getItems(new SimpleGetRequest<>(AttributeSet.class));
@@ -122,25 +152,46 @@ public class UnleashedClient {
         final HttpHeaders headers = new HttpHeaders(new LinkedMultiValueMap<>(request.getHeaders()));
         LOGGER.debug("Request headers: {}", headers);
 
-        final String requestUri = UriComponentsBuilder
-                .fromPath(request.getPath())
+        final URI requestUri = UriComponentsBuilder
+                .fromHttpUrl(this.baseUri)
+                .path(request.getPath())
                 .query(request.getQuery())
-                .toUriString();
+                .build()
+                .toUri();
+        LOGGER.debug("Request URI: {}", requestUri);
 
-        final ResponseEntity<R> response = this.restTemplate.exchange(
-                requestUri,
-                method,
-                new HttpEntity<>(request.getRequestBody(), headers),
-                new ParameterizedTypeReference<>() {
-                    @Override
-                    public Type getType() {
-                        return request.getResponseType();
+        try {
+            final ResponseEntity<R> response = this.restTemplate.exchange(
+                    requestUri,
+                    method,
+                    new HttpEntity<>(request.getRequestBody(), headers),
+                    new ParameterizedTypeReference<>() {
+                        @Override
+                        public Type getType() {
+                            return request.getResponseType();
+                        }
                     }
-                }
-        );
-        LOGGER.debug("Response status code: {}", response.getStatusCode());
+            );
+            LOGGER.debug("Response status code: {}", response.getStatusCode());
+            return Optional.ofNullable(response.getBody());
+        } catch (HttpClientErrorException e) {
+            LOGGER.error("Request failed with status code: {}, body: {}", e.getStatusCode(), e.getResponseBodyAsString());
 
-        return Optional.ofNullable(response.getBody());
+            UnleashedError error = parseError(e.getResponseBodyAsByteArray()).orElse(new UnleashedError(List.of()));
+            LOGGER.debug("Parsed error: {}", error);
+
+        }
+        return Optional.empty();
+    }
+
+    private Optional<UnleashedError> parseError(byte[] responseBody) {
+
+        try {
+            return Optional.of(mapper.readValue(responseBody, UnleashedError.class));
+        } catch (IOException e) {
+            LOGGER.warn("Failed to parse error object: {}", new String(responseBody));
+        }
+        return Optional.empty();
     }
 
 }
